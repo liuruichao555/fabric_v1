@@ -111,10 +111,9 @@ public class MemberService {
         jsonObject.addProperty("enrollmentID", "liuruichao");
         jsonObject.addProperty("affiliation", "org1.department1");
         jsonObject.addProperty("type", "user");*/
-        RegistrationRequest rr = new RegistrationRequest("liuruichao", "org1.department1");
+        RegistrationRequest req = new RegistrationRequest("liuruichao", "org1.department1");
 
-        String body = rr.toJson();
-        System.out.println(body);
+        String body = req.toJson();
 
         ECGenParameterSpec ecGenSpec = new ECGenParameterSpec(curveName);
         KeyPairGenerator g = KeyPairGenerator.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
@@ -130,9 +129,9 @@ public class MemberService {
         System.out.println(result);
     }
 
-    private String getHTTPAuthCertificate(String adminCert, PrivateKey privateKey, String body) throws Exception {
+    private String getHTTPAuthCertificate(String signedPem, PrivateKey privateKey, String body) throws Exception {
         Base64.Encoder b64 = Base64.getEncoder();
-        String cert = b64.encodeToString(adminCert.getBytes(UTF_8));
+        String cert = b64.encodeToString(signedPem.getBytes(UTF_8));
         body = b64.encodeToString(body.getBytes(UTF_8));
         String signString = body + "." + cert;
         byte[] signature = ecdsaSignToBytes(privateKey, signString.getBytes(UTF_8));
