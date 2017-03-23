@@ -1,4 +1,4 @@
-package com.liuruichao;
+package com.liuruichao.service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
