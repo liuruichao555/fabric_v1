@@ -1,7 +1,10 @@
 package com.liuruichao;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.liuruichao.dto.EnrollResponse;
 import com.liuruichao.model.RegistrationRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -35,6 +38,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.io.pem.PemObject;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,9 +59,15 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * @author liuruichao
  * Created on 2017/3/22 16:15
  */
+@Slf4j
 public class MemberService {
-    private String adminCert = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIyakNDQVlDZ0F3SUJBZ0lVY21XcUdFM2Q1QThuQnBJVzJvY3U3TjlERytjd0NnWUlLb1pJemowRUF3SXcKYURFTE1Ba0dBMVVFQmhNQ1ZWTXhGekFWQmdOVkJBZ1REazV2Y25Sb0lFTmhjbTlzYVc1aE1SUXdFZ1lEVlFRSwpFd3RJZVhCbGNteGxaR2RsY2pFUE1BMEdBMVVFQ3hNR1JtRmljbWxqTVJrd0Z3WURWUVFERXhCbVlXSnlhV010ClkyRXRjMlZ5ZG1WeU1CNFhEVEUzTURNeU1qQTRORGd3TUZvWERURTRNREl4T0RFMk5EZ3dNRm93RURFT01Bd0cKQTFVRUF4TUZZV1J0YVc0d1dUQVRCZ2NxaGtqT1BRSUJCZ2dxaGtqT1BRTUJCd05DQUFUZjlCaldyNC9wajVRZwpCN2FvL08ydG5KWE9NT0I5Q2haT0xxVVAwY3pFYUk4eXp0eldoSktyTFhlT0tPV0NqUm52emVkRWtHTkw3ZXZkClNyWjA2Z050bzJBd1hqQU9CZ05WSFE4QkFmOEVCQU1DQWdRd0RBWURWUjBUQVFIL0JBSXdBREFkQmdOVkhRNEUKRmdRVWdvdGI0ZGtwa2dtZm82T25GclV2NXJUWG16UXdId1lEVlIwakJCZ3dGb0FVaFNtZFRlYy94V0tFQXExOApFb2FBN2pYQ2hiVXdDZ1lJS29aSXpqMEVBd0lEU0FBd1JRSWhBTkl2UVZVVFE0VGtNU1NERVgwREZJOCtsVEQ5CjE4MWtueTlqaEVVOWdTdHNBaUFTSDd2aFdoaUNyVHR3OUFGNnFoVGJhK0xoeHlPMEphVk1lbkVYNEpJUEV3PT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=";
-    private String curveName = "P-256";
+    private final String curveName = "P-256";
+
+    private final Base64.Encoder b64enc = Base64.getEncoder();
+
+    private final Base64.Decoder b64dec = Base64.getDecoder();
+
+    private Gson gson = new Gson();
 
     @Before
     public void before() {
@@ -66,12 +76,8 @@ public class MemberService {
 
     @Test
     public void enroll() throws Exception {
-        /*
-            this.curveName = "P-256";
-            this.curveName = "secp384r1";
-         */
-        String username = "admin";
-        String password = "adminpw";
+        String username = "liuruichao";
+        String password = "YcJdOqyHquTI";
 
         ECGenParameterSpec ecGenSpec = new ECGenParameterSpec(curveName);
         KeyPairGenerator g = KeyPairGenerator.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
@@ -99,14 +105,20 @@ public class MemberService {
 
         String responseBody = httpPost("http://localhost:7054/api/v1/cfssl/enroll", jsonObject.toString(), username, password);
 
-        System.out.println(responseBody);
-        /*Base64.Decoder b64dec = Base64.getDecoder();
-        String signedPem = new String(b64dec.decode(adminCert.getBytes(UTF_8)));*/
+        EnrollResponse enrollResponse = gson.fromJson(responseBody, EnrollResponse.class);
 
+        if (!enrollResponse.isSuccess()) {
+            throw new RuntimeException("admin登录失败！");
+        }
+
+        log.debug("pem: {}", enrollResponse.getResult());
+        String signedPem = new String(b64dec.decode(enrollResponse.getResult().getBytes(UTF_8)));
+
+        // 必须要用一样的signingKeyPair
+        //register(signedPem, signingKeyPair);
     }
 
-    @Test
-    public void register() throws Exception {
+    public void register(String signedPem, KeyPair signingKeyPair) throws Exception {
         /*JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("enrollmentID", "liuruichao");
         jsonObject.addProperty("affiliation", "org1.department1");
@@ -115,13 +127,10 @@ public class MemberService {
 
         String body = req.toJson();
 
-        ECGenParameterSpec ecGenSpec = new ECGenParameterSpec(curveName);
+        /*ECGenParameterSpec ecGenSpec = new ECGenParameterSpec(curveName);
         KeyPairGenerator g = KeyPairGenerator.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
         g.initialize(ecGenSpec, new SecureRandom());
-        KeyPair signingKeyPair = g.generateKeyPair();
-
-        Base64.Decoder b64dec = Base64.getDecoder();
-        String signedPem = new String(b64dec.decode(adminCert.getBytes(UTF_8)));
+        KeyPair signingKeyPair = g.generateKeyPair();*/
 
         String authHdr = getHTTPAuthCertificate(signedPem, signingKeyPair.getPrivate(), body);
 
@@ -130,47 +139,15 @@ public class MemberService {
     }
 
     private String getHTTPAuthCertificate(String signedPem, PrivateKey privateKey, String body) throws Exception {
-        /*
-        sk, err := GetKeyFromBytes(csp, key)
-	if err != nil {
-		return "", err
-	}
-
-	b64body := B64Encode(body)
-	b64cert := B64Encode(cert)
-	bodyAndcert := b64body + "." + b64cert
-
-	digest, digestError := csp.Hash([]byte(bodyAndcert), &bccsp.SHAOpts{})
-	if digestError != nil {
-		return "", fmt.Errorf("Hash operation on %s\t failed with error : %s", bodyAndcert, digestError)
-	}
-
-	ecSignature, signatureError := csp.Sign(sk, digest, nil)
-	if signatureError != nil {
-		return "", fmt.Errorf("BCCSP signature generation failed with error :%s", err)
-	}
-	if len(ecSignature) == 0 {
-		return "", errors.New("BCCSP signature creation failed. Signature must be different than nil")
-	}
-
-	b64sig := B64Encode(ecSignature)
-	token := b64cert + "." + b64sig
-
-	return token, nil
-         */
-        Base64.Encoder b64 = Base64.getEncoder();
-        String cert = b64.encodeToString(signedPem.getBytes(UTF_8));
-        body = b64.encodeToString(body.getBytes(UTF_8));
+        String cert = b64enc.encodeToString(signedPem.getBytes(UTF_8));
+        body = b64enc.encodeToString(body.getBytes(UTF_8));
         String signString = body + "." + cert;
         byte[] signature = ecdsaSignToBytes(privateKey, signString.getBytes(UTF_8));
-        return cert + "." + b64.encodeToString(signature);
+        return cert + "." + b64enc.encodeToString(signature);
     }
 
     private byte[] ecdsaSignToBytes(PrivateKey privateKey, byte[] data) throws Exception {
         byte[] encoded = hash(data);
-
-        // char[] hexenncoded = Hex.encodeHex(encoded);
-        // encoded = new String(hexenncoded).getBytes();
 
         X9ECParameters params = NISTNamedCurves.getByName(curveName);
         BigInteger curve_N = params.getN();
