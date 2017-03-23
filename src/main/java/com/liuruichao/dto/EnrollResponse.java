@@ -1,5 +1,6 @@
 package com.liuruichao.dto;
 
+import com.liuruichao.model.EnrollResult;
 import lombok.Data;
 
 /**
@@ -12,5 +13,6 @@ import lombok.Data;
 public class EnrollResponse {
     private boolean success;
 
-    private String result;
+    private EnrollResult result;
+
 }

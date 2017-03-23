@@ -3,7 +3,9 @@ package com.liuruichao.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.liuruichao.dto.EnrollResponse;
+import com.liuruichao.model.Member;
 import com.liuruichao.model.RegistrationRequest;
+import com.liuruichao.security.CryptoPrimitive;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -38,15 +40,10 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.io.pem.PemObject;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 import javax.security.auth.x500.X500Principal;
 import java.io.*;
-import java.math.BigInteger;
 import java.security.*;
-import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Base64;
 
@@ -61,6 +58,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  */
 @Slf4j
 public class MemberService {
+    private CryptoPrimitive cryptoPrimitive;
+
     private final String curveName = "P-256";
 
     private final Base64.Encoder b64enc = Base64.getEncoder();
@@ -69,16 +68,12 @@ public class MemberService {
 
     private Gson gson = new Gson();
 
-    @Before
-    public void before() {
+    public MemberService() {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        cryptoPrimitive = new CryptoPrimitive();
     }
 
-    @Test
-    public void enroll() throws Exception {
-        String username = "liuruichao";
-        String password = "YcJdOqyHquTI";
-
+    public Member enroll(String username, String password) throws Exception {
         ECGenParameterSpec ecGenSpec = new ECGenParameterSpec(curveName);
         KeyPairGenerator g = KeyPairGenerator.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
         g.initialize(ecGenSpec, new SecureRandom());
@@ -112,7 +107,12 @@ public class MemberService {
         }
 
         log.debug("pem: {}", enrollResponse.getResult());
-        String signedPem = new String(b64dec.decode(enrollResponse.getResult().getBytes(UTF_8)));
+        String signedPem = new String(b64dec.decode(enrollResponse.getResult().getCert().getBytes(UTF_8)));
+
+        Member member = new Member();
+        member.setPrivateKey(signingKeyPair.getPrivate());
+        member.setCert(signedPem);
+        return member;
 
         // 必须要用一样的signingKeyPair
         //register(signedPem, signingKeyPair);
@@ -142,61 +142,11 @@ public class MemberService {
         String cert = b64enc.encodeToString(signedPem.getBytes(UTF_8));
         body = b64enc.encodeToString(body.getBytes(UTF_8));
         String signString = body + "." + cert;
-        byte[] signature = ecdsaSignToBytes(privateKey, signString.getBytes(UTF_8));
+        byte[] signature = cryptoPrimitive.ecdsaSignToBytes(privateKey, signString.getBytes(UTF_8));
         return cert + "." + b64enc.encodeToString(signature);
     }
 
-    private byte[] ecdsaSignToBytes(PrivateKey privateKey, byte[] data) throws Exception {
-        byte[] encoded = hash(data);
 
-        X9ECParameters params = NISTNamedCurves.getByName(curveName);
-        BigInteger curve_N = params.getN();
-
-        ECDomainParameters ecParams = new ECDomainParameters(params.getCurve(), params.getG(), curve_N,
-                params.getH());
-
-        ECDSASigner signer = new ECDSASigner();
-
-        ECPrivateKeyParameters privKey = new ECPrivateKeyParameters(((ECPrivateKey) privateKey).getS(), ecParams);
-        signer.init(true, privKey);
-        BigInteger[] sigs = signer.generateSignature(encoded);
-
-        sigs = preventMalleability(sigs, curve_N);
-
-        ByteArrayOutputStream s = new ByteArrayOutputStream();
-
-        DERSequenceGenerator seq = new DERSequenceGenerator(s);
-        seq.addObject(new ASN1Integer(sigs[0]));
-        seq.addObject(new ASN1Integer(sigs[1]));
-        seq.close();
-        byte[] ret = s.toByteArray();
-        return ret;
-    }
-
-    private BigInteger[] preventMalleability(BigInteger[] sigs, BigInteger curve_n) {
-        BigInteger cmpVal = curve_n.divide(BigInteger.valueOf(2l));
-
-        BigInteger sval = sigs[1];
-
-        if (sval.compareTo(cmpVal) == 1) {
-
-            sigs[1] = curve_n.subtract(sval);
-        }
-
-        return sigs;
-    }
-
-    private byte[] hash(byte[] input) {
-        Digest digest = getHashDigest();
-        byte[] retValue = new byte[digest.getDigestSize()];
-        digest.update(input, 0, input.length);
-        digest.doFinal(retValue, 0);
-        return retValue;
-    }
-
-    private Digest getHashDigest() {
-        return new SHA256Digest();
-    }
 
     private String httpPost(String url, String body, String authHTTPCert) throws Exception {
         HttpPost httpPost = new HttpPost(url);
