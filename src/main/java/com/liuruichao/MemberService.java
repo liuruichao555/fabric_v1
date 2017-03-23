@@ -1,6 +1,7 @@
 package com.liuruichao;
 
 import com.google.gson.JsonObject;
+import com.liuruichao.model.RegistrationRequest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -23,7 +24,6 @@ import org.bouncycastle.asn1.nist.NISTNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
-import org.bouncycastle.crypto.digests.SHA3Digest;
 import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.signers.ECDSASigner;
@@ -130,6 +130,34 @@ public class MemberService {
     }
 
     private String getHTTPAuthCertificate(String signedPem, PrivateKey privateKey, String body) throws Exception {
+        /*
+        sk, err := GetKeyFromBytes(csp, key)
+	if err != nil {
+		return "", err
+	}
+
+	b64body := B64Encode(body)
+	b64cert := B64Encode(cert)
+	bodyAndcert := b64body + "." + b64cert
+
+	digest, digestError := csp.Hash([]byte(bodyAndcert), &bccsp.SHAOpts{})
+	if digestError != nil {
+		return "", fmt.Errorf("Hash operation on %s\t failed with error : %s", bodyAndcert, digestError)
+	}
+
+	ecSignature, signatureError := csp.Sign(sk, digest, nil)
+	if signatureError != nil {
+		return "", fmt.Errorf("BCCSP signature generation failed with error :%s", err)
+	}
+	if len(ecSignature) == 0 {
+		return "", errors.New("BCCSP signature creation failed. Signature must be different than nil")
+	}
+
+	b64sig := B64Encode(ecSignature)
+	token := b64cert + "." + b64sig
+
+	return token, nil
+         */
         Base64.Encoder b64 = Base64.getEncoder();
         String cert = b64.encodeToString(signedPem.getBytes(UTF_8));
         body = b64.encodeToString(body.getBytes(UTF_8));

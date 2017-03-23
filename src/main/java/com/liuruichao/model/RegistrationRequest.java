@@ -1,4 +1,4 @@
-package com.liuruichao;
+package com.liuruichao.model;
 
 import javax.json.*;
 import java.io.PrintWriter;

@@ -1,4 +1,4 @@
-package com.liuruichao;
+package com.liuruichao.model;
 
 import javax.json.Json;
 import javax.json.JsonObject;
