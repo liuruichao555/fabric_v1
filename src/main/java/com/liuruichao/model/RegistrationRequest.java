@@ -1,5 +1,7 @@
 package com.liuruichao.model;
 
+import lombok.Data;
+
 import javax.json.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
  * @author liuruichao
  * Created on 2017/3/22 18:13
  */
+@Data
 public class RegistrationRequest {
 
     // The enrollment ID of the user
@@ -37,47 +40,6 @@ public class RegistrationRequest {
         this.enrollmentID = id;
         this.affiliation = affiliation;
         this.type = "user";
-    }
-
-    public String getEnrollmentID() {
-        return enrollmentID;
-    }
-
-
-    public void setEnrollmentID(String enrollmentID) {
-        this.enrollmentID = enrollmentID;
-    }
-
-    public String getSecret() {
-        return secret;
-    }
-
-    public void setSecret(String secret) {
-        this.secret = secret;
-    }
-
-    public int getMaxEnrollments() {
-        return maxEnrollments;
-    }
-
-    public void setMaxEnrollments(int maxEnrollments) {
-        this.maxEnrollments = maxEnrollments;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getAffiliation() {
-        return affiliation;
-    }
-
-    public void setAffiliation(String affiliation) {
-        this.affiliation = affiliation;
     }
 
     // Convert the registration request to a JSON string

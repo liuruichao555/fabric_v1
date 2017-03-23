@@ -1,5 +1,7 @@
 package com.liuruichao.model;
 
+import lombok.Getter;
+
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -10,6 +12,7 @@ import javax.json.JsonObjectBuilder;
  * @author liuruichao
  * Created on 2017/3/22 18:17
  */
+@Getter
 public class Attribute {
     private String name;
     private String value;
@@ -17,14 +20,6 @@ public class Attribute {
     public Attribute(String name, String value) {
         this.name = name;
         this.value = value;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public String getValue() {
-        return this.value;
     }
 
     public JsonObject toJsonObject() {
