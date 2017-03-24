@@ -39,6 +39,7 @@ public class OrdererService {
 
     private MemberService memberService = new MemberService();
 
+    // TODO chain name(channel name)
     private String name = "foo";
 
     private CryptoPrimitive cryptoPrimitive = new CryptoPrimitive();
