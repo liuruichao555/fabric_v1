@@ -18,4 +18,6 @@ public class Member {
     private PublicKey publicKey;
 
     private String cert;
+
+    private String mspID;
 }

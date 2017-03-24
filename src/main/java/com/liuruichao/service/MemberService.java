@@ -113,6 +113,8 @@ public class MemberService {
         member.setPrivateKey(signingKeyPair.getPrivate());
         member.setPublicKey(signingKeyPair.getPublic());
         member.setCert(signedPem);
+        // TODO MSPID
+        member.setMspID("DEFAULT");
         return member;
 
         // 必须要用一样的signingKeyPair
