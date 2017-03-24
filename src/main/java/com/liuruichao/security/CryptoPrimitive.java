@@ -21,10 +21,10 @@ import java.security.interfaces.ECPrivateKey;
  * @author liuruichao
  * Created on 2017/3/23 15:54
  */
-public class CryptoPrimitive {
-    private final String curveName = "P-256";
+public final class CryptoPrimitive {
+    private static final String curveName = "P-256";
 
-    public byte[] ecdsaSignToBytes(PrivateKey privateKey, byte[] data) throws Exception {
+    public static byte[] ecdsaSignToBytes(PrivateKey privateKey, byte[] data) throws Exception {
         byte[] encoded = hash(data);
 
         X9ECParameters params = NISTNamedCurves.getByName(curveName);
@@ -51,7 +51,7 @@ public class CryptoPrimitive {
         return ret;
     }
 
-    private BigInteger[] preventMalleability(BigInteger[] sigs, BigInteger curve_n) {
+    private static BigInteger[] preventMalleability(BigInteger[] sigs, BigInteger curve_n) {
         BigInteger cmpVal = curve_n.divide(BigInteger.valueOf(2l));
 
         BigInteger sval = sigs[1];
@@ -64,7 +64,7 @@ public class CryptoPrimitive {
         return sigs;
     }
 
-    private byte[] hash(byte[] input) {
+    private static byte[] hash(byte[] input) {
         Digest digest = getHashDigest();
         byte[] retValue = new byte[digest.getDigestSize()];
         digest.update(input, 0, input.length);
@@ -72,7 +72,7 @@ public class CryptoPrimitive {
         return retValue;
     }
 
-    private Digest getHashDigest() {
+    private static Digest getHashDigest() {
         return new SHA256Digest();
     }
 }
