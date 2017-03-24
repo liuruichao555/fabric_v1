@@ -53,7 +53,7 @@ public class OrdererService {
             Ab.BroadcastResponse response = sendTransaction(envelope);
             System.out.println(response.getStatusValue());
             Common.Block genesisBlock = getGenesisBlock(memberService.enroll("admin", "adminpw"));
-            System.out.println(genesisBlock.getHeader().getDataHash());
+            System.out.println("genesisBlock: " + genesisBlock);
         } finally {
             shutdown();
         }
