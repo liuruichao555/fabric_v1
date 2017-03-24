@@ -3,6 +3,7 @@ package com.liuruichao.model;
 import lombok.Data;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 
 /**
  * Member
@@ -13,6 +14,8 @@ import java.security.PrivateKey;
 @Data
 public class Member {
     private PrivateKey privateKey;
+
+    private PublicKey publicKey;
 
     private String cert;
 }

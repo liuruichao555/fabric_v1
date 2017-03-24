@@ -76,10 +76,12 @@ public class EndorserTest {
                 .setNonce(ByteString.copyFromUtf8(UUID.randomUUID().toString())).build();
 
         List<ByteString> allArgs = new ArrayList<>();
+        // args
+        allArgs.add(ByteString.copyFrom("GetChainInfo".getBytes(UTF_8)));
         Chaincode.ChaincodeInput chaincodeInput = Chaincode.ChaincodeInput.newBuilder().addAllArgs(allArgs).build();
 
         Chaincode.ChaincodeSpec chaincodeSpec = Chaincode.ChaincodeSpec.newBuilder()
-                .setType(Chaincode.ChaincodeSpec.Type.GOLANG)
+                .setType(Chaincode.ChaincodeSpec.Type.JAVA)
                 .setChaincodeId(chaincodeID)
                 .setInput(chaincodeInput)
                 .build();
@@ -127,61 +129,5 @@ public class EndorserTest {
 
         signedProposal.setSignature(ByteString.copyFrom(ecdsaSignature));
         return signedProposal.build();
-    }
-
-    public byte[] ecdsaSignToBytes(PrivateKey privateKey, byte[] data) throws Exception {
-        byte[] encoded = data;
-        encoded = hash(data);
-
-        // char[] hexenncoded = Hex.encodeHex(encoded);
-        // encoded = new String(hexenncoded).getBytes();
-
-        X9ECParameters params = NISTNamedCurves.getByName(this.curveName);
-        BigInteger curve_N = params.getN();
-
-        ECDomainParameters ecParams = new ECDomainParameters(params.getCurve(), params.getG(), curve_N,
-                params.getH());
-
-        ECDSASigner signer = new ECDSASigner();
-
-        ECPrivateKeyParameters privKey = new ECPrivateKeyParameters(((ECPrivateKey) privateKey).getS(), ecParams);
-        signer.init(true, privKey);
-        BigInteger[] sigs = signer.generateSignature(encoded);
-
-        sigs = preventMalleability(sigs, curve_N);
-
-        ByteArrayOutputStream s = new ByteArrayOutputStream();
-
-        DERSequenceGenerator seq = new DERSequenceGenerator(s);
-        seq.addObject(new ASN1Integer(sigs[0]));
-        seq.addObject(new ASN1Integer(sigs[1]));
-        seq.close();
-        byte[] ret = s.toByteArray();
-        return ret;
-    }
-
-    private byte[] hash(byte[] input) {
-        Digest digest = getHashDigest();
-        byte[] retValue = new byte[digest.getDigestSize()];
-        digest.update(input, 0, input.length);
-        digest.doFinal(retValue, 0);
-        return retValue;
-    }
-
-    private Digest getHashDigest() {
-        return new SHA256Digest();
-    }
-
-    private BigInteger[] preventMalleability(BigInteger[] sigs, BigInteger curve_n) {
-        BigInteger cmpVal = curve_n.divide(BigInteger.valueOf(2l));
-
-        BigInteger sval = sigs[1];
-
-        if (sval.compareTo(cmpVal) == 1) {
-
-            sigs[1] = curve_n.subtract(sval);
-        }
-
-        return sigs;
     }
 }

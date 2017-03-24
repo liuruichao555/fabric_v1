@@ -111,6 +111,7 @@ public class MemberService {
 
         Member member = new Member();
         member.setPrivateKey(signingKeyPair.getPrivate());
+        member.setPublicKey(signingKeyPair.getPublic());
         member.setCert(signedPem);
         return member;
 
