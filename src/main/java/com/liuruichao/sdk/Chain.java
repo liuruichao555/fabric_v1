@@ -28,7 +28,7 @@ import static java.lang.String.format;
 import static orderer.Ab.DeliverResponse.TypeCase.STATUS;
 
 /**
- * Chain
+ * TODO 重构这个类，不太好用
  *
  * @author liuruichao
  * Created on 2017/3/24 16:38
