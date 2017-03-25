@@ -29,6 +29,8 @@ import static orderer.Ab.DeliverResponse.TypeCase.STATUS;
 
 /**
  * TODO 重构这个类，不太好用
+ *    1.建议拆出几个类
+ *    2.引入合理的设计模式
  *
  * @author liuruichao
  * Created on 2017/3/24 16:38
