@@ -2,11 +2,9 @@ package com.ziyun;
 
 import com.ziyun.model.Customer;
 import com.ziyun.util.CryptoUtils;
-import orderer.Ab;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
@@ -23,7 +21,8 @@ public class MemberServiceTest {
         ArrayList<String> roles = new ArrayList<>();
         String account = "ziyun";
         String affiliation = "affiliation";
-        String mspID = "ziyun.MSP";
+        String mspID = "OrdererMSP";
+        //String mspID = "ziyun.MSP";
 
         MemberServices memberServices = new HFCAClient("http://localhost:7054", null);
         memberServices.setCryptoSuite(CryptoUtils.createCryptoSuite());
@@ -39,6 +38,8 @@ public class MemberServiceTest {
         Properties orderProperties = new Properties();
         String pemPath = "/Users/liuruichao/develop/opensource/golang/gopath/src/github.com/hyperledger/fabric/examples/e2e_cli/crypto/orderer/localMspConfig/cacerts/ordererOrg0.pem";
         orderProperties.setProperty("pemFile", pemPath);
+        orderProperties.setProperty("trustServerCertificate", "true");
+        //orderProperties.setProperty("hostnameOverride", "localhost");
 
         Orderer orderer = hfClient.newOrderer("mychannel", "grpc://localhost:7050", orderProperties);
         Peer peer = hfClient.newPeer("peer0", "grpc://localhost:7051");
