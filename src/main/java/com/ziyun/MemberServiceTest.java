@@ -10,6 +10,10 @@ import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * MemberServiceTest
@@ -59,9 +63,25 @@ public class MemberServiceTest {
         //chain.initialize();
         //Collection<Peer> peers = chain.getPeers();
         //System.out.println(peers);
+
+        invoke(hfClient, chain);
+
+        query(hfClient, chain);
     }
 
-    private void query(HFClient hfClient, Chain chain) throws ProposalException, InvalidArgumentException {
+    private static void invoke(HFClient hfClient, Chain chain) throws InvalidArgumentException, ProposalException, InterruptedException, ExecutionException, TimeoutException {
+        ChainCodeID chainCodeID = ChainCodeID.newBuilder().setName(CHAIN_CODE_NAME)
+                .setVersion(CHAIN_CODE_VERSION).build();
+        InvokeProposalRequest invokeProposalRequest = hfClient.newInvokeProposalRequest();
+        invokeProposalRequest.setChaincodeID(chainCodeID);
+        invokeProposalRequest.setFcn("invoke");
+        invokeProposalRequest.setArgs(new String[]{"move", "a", "b", "100"});
+        Collection<ProposalResponse> invokeProposals = chain.sendInvokeProposal(invokeProposalRequest, chain.getPeers());
+        BlockEvent.TransactionEvent completableFuture = chain.sendTransaction(invokeProposals, chain.getOrderers()).get(120, TimeUnit.SECONDS);
+        System.out.println("TransactionID: " + completableFuture.getTransactionID());
+    }
+
+    private static void query(HFClient hfClient, Chain chain) throws ProposalException, InvalidArgumentException {
         ChainCodeID chainCodeID = ChainCodeID.newBuilder().setName(CHAIN_CODE_NAME)
                 .setVersion(CHAIN_CODE_VERSION).build();
         // .setPath(CHAIN_CODE_PATH).build(); // 查询不需要path
