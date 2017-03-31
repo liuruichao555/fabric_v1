@@ -21,7 +21,7 @@ public class MemberServiceTest {
         ArrayList<String> roles = new ArrayList<>();
         String account = "ziyun";
         String affiliation = "affiliation";
-        String mspID = "OrdererMSP";
+        String mspID = "Org0MSP";
         //String mspID = "ziyun.MSP";
 
         MemberServices memberServices = new HFCAClient("http://localhost:7054", null);
@@ -36,10 +36,9 @@ public class MemberServiceTest {
         hfClient.setUserContext(customer);
 
         Properties orderProperties = new Properties();
-        String pemPath = "/Users/liuruichao/develop/opensource/golang/gopath/src/github.com/hyperledger/fabric/examples/e2e_cli/crypto/orderer/localMspConfig/cacerts/ordererOrg0.pem";
+        /*String pemPath = "/Users/liuruichao/develop/opensource/golang/gopath/src/github.com/hyperledger/fabric/examples/e2e_cli/crypto/orderer/localMspConfig/cacerts/ordererOrg0.pem";
         orderProperties.setProperty("pemFile", pemPath);
-        orderProperties.setProperty("trustServerCertificate", "true");
-        //orderProperties.setProperty("hostnameOverride", "localhost");
+        orderProperties.setProperty("trustServerCertificate", "true");*/
 
         Orderer orderer = hfClient.newOrderer("mychannel", "grpc://localhost:7050", orderProperties);
         Peer peer = hfClient.newPeer("peer0", "grpc://localhost:7051");
@@ -48,6 +47,5 @@ public class MemberServiceTest {
         chain.joinPeer(peer);
         chain.initialize();
         Collection<Peer> peers = chain.getPeers();
-        System.out.println(peers);
     }
 }
