@@ -47,5 +47,6 @@ public class MemberServiceTest {
         chain.joinPeer(peer);
         chain.initialize();
         Collection<Peer> peers = chain.getPeers();
+        System.out.println(peers);
     }
 }
