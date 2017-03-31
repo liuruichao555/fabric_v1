@@ -54,9 +54,11 @@ public class MemberServiceTest {
 
         Orderer orderer = hfClient.newOrderer("foo", "grpc://localhost:7050", orderProperties);
         Peer peer = hfClient.newPeer("peer0", "grpc://localhost:7051");
+        Peer peer1 = hfClient.newPeer("peer1", "grpc://localhost:7056");
         Chain chain = hfClient.newChain("foo");
         chain.addOrderer(orderer);
         chain.addPeer(peer);
+        chain.addPeer(peer1);
         chain.initialize();
 
         //chain.addPeer(peer);
@@ -64,7 +66,7 @@ public class MemberServiceTest {
         //Collection<Peer> peers = chain.getPeers();
         //System.out.println(peers);
 
-        invoke(hfClient, chain);
+        //invoke(hfClient, chain);
 
         query(hfClient, chain);
     }
