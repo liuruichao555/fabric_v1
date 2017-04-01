@@ -5,8 +5,11 @@ import com.ziyun.util.CryptoUtils;
 import org.hyperledger.fabric.sdk.*;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
 import org.hyperledger.fabric.sdk.exception.ProposalException;
+import org.hyperledger.fabric.sdk.exception.TransactionException;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Properties;
@@ -30,15 +33,19 @@ public class MemberServiceTest {
 
     public static void main(String[] args) throws Exception {
         String username = "admin";
+        String password = "adminpw";
         ArrayList<String> roles = new ArrayList<>();
-        String account = "ziyun";
-        String affiliation = "affiliation";
+        String account = null;
+        String affiliation = "peerOrg1";
         String mspID = "Org1MSP";
         //String mspID = "ziyun.MSP";
+        String configPath = "/Users/liuruichao/javaSRC/oxchains/fabric_v1/src/main/resources/foo.tx";
+        String ordererName = "orderer0";
+        String chainName = "foo";
 
         MemberServices memberServices = new HFCAClient("http://localhost:7054", null);
         memberServices.setCryptoSuite(CryptoUtils.createCryptoSuite());
-        Enrollment enrollment = memberServices.enroll("admin", "adminpw");
+        Enrollment enrollment = memberServices.enroll(username, password);
 
         Customer customer = new Customer(username, enrollment, roles, account, affiliation, mspID);
 
@@ -52,23 +59,41 @@ public class MemberServiceTest {
         orderProperties.setProperty("pemFile", pemPath);
         orderProperties.setProperty("trustServerCertificate", "true");*/
 
-        Orderer orderer = hfClient.newOrderer("foo", "grpc://localhost:7050", orderProperties);
-        Peer peer = hfClient.newPeer("peer0", "grpc://localhost:7051");
+        Orderer orderer = hfClient.newOrderer(ordererName, "grpc://localhost:7050", null);
+        /*Peer peer = hfClient.newPeer("peer0", "grpc://localhost:7051");
         Peer peer1 = hfClient.newPeer("peer1", "grpc://localhost:7056");
         Chain chain = hfClient.newChain("foo");
         chain.addOrderer(orderer);
         chain.addPeer(peer);
         chain.addPeer(peer1);
-        chain.initialize();
+        chain.initialize();*/
 
         //chain.addPeer(peer);
         //chain.initialize();
         //Collection<Peer> peers = chain.getPeers();
         //System.out.println(peers);
 
+        Chain chain = createChain(hfClient, configPath, orderer, chainName);
+
         //invoke(hfClient, chain);
 
-        query(hfClient, chain);
+        //query(hfClient, chain);
+    }
+
+    private static void installChaincode() {
+
+    }
+
+    private static Chain createChain(HFClient hfClient, String configPath, Orderer orderer, String chainName) throws IOException, InvalidArgumentException, TransactionException, ProposalException {
+        ChainConfiguration chainConfiguration = new ChainConfiguration(new File(configPath));
+
+        Chain newChain = hfClient.newChain(chainName, orderer, chainConfiguration);
+        Peer peer0 = hfClient.newPeer("peer0", "grpc://localhost:7051");
+        Peer peer1 = hfClient.newPeer("peer1", "grpc://localhost:7056");
+        newChain.joinPeer(peer0);
+        newChain.joinPeer(peer1);
+        newChain.initialize();
+        return newChain;
     }
 
     private static void invoke(HFClient hfClient, Chain chain) throws InvalidArgumentException, ProposalException, InterruptedException, ExecutionException, TimeoutException {
