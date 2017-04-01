@@ -23,7 +23,7 @@ public class OrdererService {
     @Test
     public void testCreateChain() throws Exception {
         String name = "foo";
-        String configtxPath = "/Users/liuruichao/javaSRC/oxchains/fabric_v1/src/main/resources/foo.configtx";
+        String configtxPath = "/Users/liuruichao/javaSRC/oxchains/fabric_v1/src/main/resources/foo.tx";
         Member member = memberService.enroll("admin", "adminpw");
         Chain chain = new Chain(name, "localhost", 7050, configtxPath, member);
         System.out.println(chain.getGenesisBlock());
