@@ -31,11 +31,6 @@
             <groupId>org.hyperledger</groupId>
             <artifactId>shim-client</artifactId>
             <version>${shim-client.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hyperledger</groupId>
-            <artifactId>fabric-sdk-java</artifactId>
-            <version>${fabric-sdk-java.version}</version>
         </dependency>-->
         <!-- fabric end -->
         <dependency>
